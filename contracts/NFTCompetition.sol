@@ -40,6 +40,7 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
     }
 
     mapping(uint256 => Competition) public competitions;
+    mapping(bytes32 => bool) public competitionEntries;
     mapping(bytes32 => uint256) public requestIdToCompetitionId;
 
     event NewCompetition(uint256 Id, address indexed creator);
@@ -93,7 +94,6 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
         emit NewCompetition(currentCompetitionId, msg.sender);
 
         currentCompetitionId = currentCompetitionId.add(1);
-
     }
 
     /**
