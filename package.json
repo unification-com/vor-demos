@@ -1,0 +1,32 @@
+{
+  "name": "vor-demos",
+  "version": "0.0.1",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unification-com/vor-demos.git"
+  },
+  "author": "Codegnosis",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/unification-com/vor-demos/issues"
+  },
+  "homepage": "https://github.com/unification-com/vor-demos#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.0",
+    "@unification-com/xfund-vor": "^0.1.1",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "@truffle/hdwallet-provider": "^1.2.6",
+    "truffle": "^5.3.0",
+    "truffle-plugin-verify": "^0.5.7"
+  }
+}
