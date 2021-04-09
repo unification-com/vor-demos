@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
 
@@ -17,10 +18,10 @@ import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
  * @dev The contract owner can run any number of competitions with NFTs as
  * @dev prizes. Entrants pay an xFUND fee to enter, and when the competition
  * @dev runs, the winner is selected by requesting randomness from a VOR
- * @dev oracle. The NFT is minted for the winner.
+ * @dev oracle. The NFT is transferred to the winner.
  */
 
-contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
+contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
 
     using SafeMath for uint256;
     using Address for address;
@@ -33,14 +34,13 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
     struct Competition {
         uint256 maxEntries; // max number of entries allowed
         uint256 competitionFee; // xFUND cost to enter competition
-        string nftUri;
+        uint256 tokenId; //will be the same as the competitionId
         bool open;
         bool running;
         address[] entrants;
     }
 
     mapping(uint256 => Competition) public competitions;
-    mapping(bytes32 => bool) public competitionEntries;
     mapping(bytes32 => uint256) public requestIdToCompetitionId;
 
     event NewCompetition(uint256 Id, address indexed creator);
@@ -78,15 +78,19 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
     }
 
     /**
-    * @notice Creates a new competition
+    * @notice Creates a new competition and mints the NFT. This contract is the temporary owner
     *
     * @param _nftUri string URI of the NFT being offered as a prize
     * @param _maxEntries uint256 max number of entries for this competition
     * @param _competitionFee uint256 xFUND fee for entering
     */
     function newCompetition(string memory _nftUri, uint256 _maxEntries, uint256 _competitionFee) external onlyOwner {
+
+        _safeMint(address(this), currentCompetitionId);
+        _setTokenURI(currentCompetitionId, _nftUri);
+
         competitions[currentCompetitionId].maxEntries = _maxEntries;
-        competitions[currentCompetitionId].nftUri = _nftUri;
+        competitions[currentCompetitionId].tokenId = currentCompetitionId;
         competitions[currentCompetitionId].competitionFee = _competitionFee;
         competitions[currentCompetitionId].open = true;
         competitions[currentCompetitionId].running = false;
@@ -124,6 +128,7 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
         require(competitions[_competitionId].open, "competition does not exist");
         competitions[_competitionId].open = false;
         competitions[_competitionId].running = true;
+        xFUND.transferFrom(msg.sender, address(this), randomnessFee);
         requestId = requestRandomness(keyHash, randomnessFee, _userProvidedSeed);
         requestIdToCompetitionId[requestId] = _competitionId;
         emit CompetitionRunning(_competitionId, requestId);
@@ -133,7 +138,7 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
      * @notice Callback function used by VOR Coordinator to return the random number
      * to this contract.
      * @dev The random number is used to select the winner of the running NFT competition.
-     * The NFT is then minted for the winner.
+     * The NFT is then transferred to the winner.
      *
      * @param _requestId bytes32
      * @param _randomness The random result returned by the oracle
@@ -145,8 +150,7 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
         uint256 winnerIdx = _randomness.mod(competitions[competitionId].entrants.length);
         address winner = competitions[competitionId].entrants[winnerIdx];
 
-        _safeMint(winner, competitionId);
-        _setTokenURI(competitionId, competitions[competitionId].nftUri);
+        _safeTransfer(address(this), winner, competitions[competitionId].tokenId, "");
 
         emit CompetitionWinner(competitionId, winner, _requestId);
 
@@ -201,5 +205,9 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase {
      */
     function getCompetition(uint256 _competitionId) public view returns(Competition memory) {
         return competitions[_competitionId];
+    }
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }

@@ -14,3 +14,12 @@ This repo contains a selection of demo smart contracts which implement VOR
 6. `npx truffle compile`
 7. `npx truffle migrate --reset --network=rinkeby`
 8. Optionally `npx truffle run verify NFTCompetition --network=rinkeby`
+
+### Dev helper script
+
+Requires Ganache and Oracle to be running, and `xfund-vor` contracts deployed
+
+```bash
+npx truffle deploy --network=develop
+npx truffle exec dev_scripts/ganache_nft_request.js --network=develop
+```
