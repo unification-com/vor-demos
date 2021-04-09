@@ -1,6 +1,6 @@
 {
   "name": "vor-demos",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "truffle-config.js",
   "directories": {
@@ -21,7 +21,7 @@
   "homepage": "https://github.com/unification-com/vor-demos#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.0",
-    "@unification-com/xfund-vor": "^0.1.2",
+    "@unification-com/xfund-vor": "^0.2.0",
     "dotenv": "^8.2.0"
   },
   "devDependencies": {
