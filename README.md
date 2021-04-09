@@ -2,7 +2,7 @@
 
 This repo contains a selection of demo smart contracts which implement VOR
 
-1. NFT Demo - live on Rinkeby [0x5252ED67e0B140cb6b619304955cdbA795fbC013](https://rinkeby.etherscan.io/address/0x5252ED67e0B140cb6b619304955cdbA795fbC013#code)
+1. NFT Demo - live on Rinkeby [0xE1426CE899537340E5551cF37Db813B75Ec6C579](https://rinkeby.etherscan.io/address/0xE1426CE899537340E5551cF37Db813B75Ec6C579#code)
 
 ## 1. Installing and deploying NFT Demo
 
