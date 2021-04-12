@@ -2,7 +2,6 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
 
@@ -15,6 +14,7 @@ import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
  * fulfillRandomness, which calculates if the player crits, hits or misses.
  */
 contract DnD is Ownable, VORConsumerBase {
+    using SafeMath for uint256;
 
     // keep track of the monsters
     uint256 public currentMonsterId;
