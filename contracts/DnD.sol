@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -17,12 +18,19 @@ contract DnD is Ownable, VORConsumerBase {
     using SafeMath for uint256;
 
     // keep track of the monsters
-    uint256 public currentMonsterId;
+    uint256 public nextMonsterId;
 
     // super simple monster stats
     struct Monster {
         string name;
         uint256 ac;
+    }
+
+    struct Result {
+        uint256 roll;
+        uint256 modified;
+        string result;
+        bool isRolling;
     }
 
     // monsters held in the contract
@@ -33,6 +41,8 @@ contract DnD is Ownable, VORConsumerBase {
     mapping(bytes32 => uint256) public requestIdToMonsterId;
     // map request IDs to player addresses, to retrieve STR modifiers
     mapping(bytes32 => address) public requestIdToAddress;
+
+    mapping(address => mapping(uint256 => Result)) lastResult;
 
     // Some useful events to track
     event AddMonster(uint256 monsterId, string name, uint256 ac);
@@ -49,7 +59,7 @@ contract DnD is Ownable, VORConsumerBase {
     constructor(address _vorCoordinator, address _xfund)
     public
     VORConsumerBase(_vorCoordinator, _xfund) {
-        currentMonsterId = 1;
+        nextMonsterId = 1;
     }
 
     /**
@@ -59,12 +69,12 @@ contract DnD is Ownable, VORConsumerBase {
     * @param _ac uint256 AC of the monster
     */
     function addMonster(string memory _name, uint256 _ac) external onlyOwner {
-        require(currentMonsterId <= 20, "too many monsters");
+        require(nextMonsterId <= 20, "too many monsters");
         require(_ac > 0, "monster too weak");
-        monsters[currentMonsterId].name = _name;
-        monsters[currentMonsterId].ac = _ac;
-        emit AddMonster(currentMonsterId, _name, _ac);
-        currentMonsterId = currentMonsterId.add(1);
+        monsters[nextMonsterId].name = _name;
+        monsters[nextMonsterId].ac = _ac;
+        emit AddMonster(nextMonsterId, _name, _ac);
+        nextMonsterId = nextMonsterId.add(1);
     }
 
     /**
@@ -89,6 +99,7 @@ contract DnD is Ownable, VORConsumerBase {
     */
     function rollForHit(uint256 _monsterId, uint256 _seed, bytes32 _keyHash, uint256 _fee) external returns (bytes32 requestId) {
         require(monsters[_monsterId].ac > 0, "monster does not exist");
+        require(!lastResult[msg.sender][_monsterId].isRolling, "roll currently in progress");
         // Note - caller must have increased xFUND allowance for this contract first.
         // Fee is transferred from msg.sender to this contract. The VORCoordinator.requestRandomness
         // function will then transfer from this contract to itself.
@@ -98,6 +109,7 @@ contract DnD is Ownable, VORConsumerBase {
         emit HittingMonster(_monsterId, requestId);
         requestIdToAddress[requestId] = msg.sender;
         requestIdToMonsterId[requestId] = _monsterId;
+        lastResult[msg.sender][_monsterId].isRolling = true;
     }
 
     /**
@@ -135,9 +147,34 @@ contract DnD is Ownable, VORConsumerBase {
         }
         emit HitResult(monsterId, _requestId, player, res, roll, modified);
 
+        lastResult[player][monsterId].result = res;
+        lastResult[player][monsterId].roll = roll;
+        lastResult[player][monsterId].modified = modified;
+        lastResult[player][monsterId].isRolling = false;
+
         // clean up
         delete requestIdToMonsterId[_requestId];
         delete requestIdToAddress[_requestId];
+    }
+
+    /**
+     * @notice getLastResult returns the last result for a specified player/monsterId.
+     *
+     * @param _player address address of player
+     * @param _monsterId uint256 id of monster
+     */
+    function getLastResult(address _player, uint256 _monsterId) external view returns (Result memory) {
+        return lastResult[_player][_monsterId];
+    }
+
+    /**
+    * @notice unstickRoll allows contract owner to unstick a roll when a request is not fulfilled
+    *
+    * @param _player address address of player
+    * @param _monsterId uint256 id of monster
+    */
+    function unstickRoll(address _player, uint256 _monsterId) external onlyOwner {
+        lastResult[_player][_monsterId].isRolling = false;
     }
 
     /**
