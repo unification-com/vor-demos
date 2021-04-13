@@ -47,6 +47,7 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
     event CompetitionEntry(uint256 competitionId, address indexed entrant);
     event CompetitionRunning(uint256 competitionId, bytes32 requestId);
     event CompetitionWinner(uint256 competitionId, address indexed winner, bytes32 requestId);
+    event ERC721Received(address operator, address from, uint256 tokenId);
 
     /**
     * @notice Constructor inherits VORConsumerBase
@@ -172,12 +173,12 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
     }
 
     /**
-     * @notice Example wrapper function for the VORConsumerBase withdrawXFUND function.
+     * @notice withdrawToken allow contract owner to withdraw xFUND from this contract
      * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
      * @dev Allows contract owner to withdraw any xFUND currently held by this contract
      */
     function withdrawToken(address to, uint256 value) external onlyOwner {
-        _withdrawXFUND(to, value);
+        require(xFUND.transfer(to, value), "not enough xFUND");
     }
 
     /**
@@ -208,6 +209,7 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
     }
 
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external override returns (bytes4) {
+        emit ERC721Received(operator, from, tokenId);
         return IERC721Receiver.onERC721Received.selector;
     }
 }

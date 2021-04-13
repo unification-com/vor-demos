@@ -41,7 +41,7 @@ contract DnD is Ownable, VORConsumerBase {
     mapping(bytes32 => uint256) public requestIdToMonsterId;
     // map request IDs to player addresses, to retrieve STR modifiers
     mapping(bytes32 => address) public requestIdToAddress;
-
+    // store last [player][monster] results
     mapping(address => mapping(uint256 => Result)) lastResult;
 
     // Some useful events to track
@@ -147,6 +147,7 @@ contract DnD is Ownable, VORConsumerBase {
         }
         emit HitResult(monsterId, _requestId, player, res, roll, modified);
 
+        // store the results
         lastResult[player][monsterId].result = res;
         lastResult[player][monsterId].roll = roll;
         lastResult[player][monsterId].modified = modified;
