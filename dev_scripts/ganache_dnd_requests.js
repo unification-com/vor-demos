@@ -22,10 +22,13 @@ module.exports = async function(callback) {
   const consumerOwner = accounts[0]
   const provider = accounts[1]
 
+  const fee = await vorCoord.methods.getProviderGranularFee(KEY_HASH, dnd.address).call()
+
   console.log("consumerOwner", consumerOwner)
   console.log("provider", provider)
   console.log("keyHash", KEY_HASH)
   console.log("dnd", dnd.address)
+  console.log("fee", fee.toString())
 
   const monster = await dnd.monsters(1)
   if(monster.ac.toNumber() === 0) {
@@ -38,16 +41,16 @@ module.exports = async function(callback) {
   await dnd.increaseVorAllowance( "100000000000000000000000000", { from: consumerOwner } )
   let fromBlock = 0
 
-  for(let i = 1; i < numRollers; i += 1) {
+  for(let i = 1; i <= numRollers; i += 1) {
     const seed = Date.now()
     console.log("roll", i, "seed", seed)
     const acc = i + 1
-    await xfund.methods.transfer(accounts[acc], 10).send({from: consumerOwner})
-    await xfund.methods.increaseAllowance(dnd.address, 1).send({from: accounts[acc]})
+    await xfund.methods.transfer(accounts[acc], fee).send({from: consumerOwner})
+    await xfund.methods.increaseAllowance(dnd.address, fee).send({from: accounts[acc]})
     if(i > 0 && i <= 5) {
       await dnd.changeStrModifier(i, {from: accounts[acc]})
     }
-    const tx = await dnd.rollForHit(1, seed, KEY_HASH, 1, {from: accounts[acc]})
+    const tx = await dnd.rollForHit(1, seed, KEY_HASH, fee, {from: accounts[acc]})
     if(i === 0) {
       fromBlock = tx.receipt.blockNumber
     }
