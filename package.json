@@ -21,7 +21,7 @@
   "homepage": "https://github.com/unification-com/vor-demos#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.0",
-    "@unification-com/xfund-vor": "^0.2.3",
+    "@unification-com/xfund-vor": "^0.2.4",
     "dotenv": "^8.2.0"
   },
   "devDependencies": {

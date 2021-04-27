@@ -2018,10 +2018,10 @@
   resolved "https://registry.yarnpkg.com/@types/zen-observable/-/zen-observable-0.8.2.tgz#808c9fa7e4517274ed555fa158f2de4b4f468e71"
   integrity sha512-HrCIVMLjE1MOozVoD86622S7aunluLb2PJdPfb3nYiEtohm8mIB/vyv0Fd37AdeMFrTUQXEunw78YloMA3Qilg==
 
-"@unification-com/xfund-vor@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@unification-com/xfund-vor/-/xfund-vor-0.2.3.tgz#2806e7808cf504ef08da9483de62d42b40a5f223"
-  integrity sha512-XxADcNZusbgYu0+EgROyIA8sUD6DftXynCaPgYnswM6ePHQAUG3UyE8d6IIuugYAZkQeQWosYRNuf7Iq8mD8dQ==
+"@unification-com/xfund-vor@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@unification-com/xfund-vor/-/xfund-vor-0.2.4.tgz#379fe1562de99edbab08ea1d855cb484b6aeea14"
+  integrity sha512-7sne+6S0JGmB5iCuIgJjY4aMa7G49DsUrjhG+kAuYoYQacCmHft4xr47mTVsAlnQXO6tOuQsWJU6v6VQc6ng9g==
   dependencies:
     "@openzeppelin/contracts" "^3.4.0"
     "@truffle/hdwallet-provider" "^1.2.6"
