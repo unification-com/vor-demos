@@ -189,4 +189,31 @@ contract DnD is Ownable, VORConsumerBase {
     function increaseVorAllowance(uint256 _amount) external onlyOwner {
         _increaseVorCoordinatorAllowance(_amount);
     }
+
+    /**
+     * @notice Example wrapper function for the VORConsumerBase withdrawXFUND function.
+     * Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * Allows contract owner to withdraw any xFUND currently held by this contract
+     */
+    function withdrawToken(address to, uint256 value) external onlyOwner {
+        require(xFUND.transfer(to, value), "Not enough xFUND");
+    }
+
+    /**
+     * @notice Example wrapper function for the VORConsumerBase _setVORCoordinator function.
+     * Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * Allows contract owner to change the VORCoordinator address in the event of a network
+     * upgrade.
+     */
+    function setVORCoordinator(address _vorCoordinator) external onlyOwner {
+        _setVORCoordinator(_vorCoordinator);
+    }
+
+    /**
+     * @notice returns the current VORCoordinator contract address
+     * @return vorCoordinator address
+     */
+    function getVORCoordinator() external view returns (address) {
+        return vorCoordinator;
+    }
 }
