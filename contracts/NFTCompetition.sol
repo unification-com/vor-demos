@@ -182,6 +182,24 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
     }
 
     /**
+     * @notice Example wrapper function for the VORConsumerBase _setVORCoordinator function.
+     * Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * Allows contract owner to change the VORCoordinator address in the event of a network
+     * upgrade.
+     */
+    function setVORCoordinator(address _vorCoordinator) external onlyOwner {
+        _setVORCoordinator(_vorCoordinator);
+    }
+
+    /**
+     * @notice returns the current VORCoordinator contract address
+     * @return vorCoordinator address
+     */
+    function getVORCoordinator() external view returns (address) {
+        return vorCoordinator;
+    }
+
+    /**
      * @notice Set the key hash for the oracle
      *
      * @param _keyHash bytes32 key hash of the oracle fulfilling requests
