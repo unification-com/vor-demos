@@ -23,4 +23,5 @@ Requires Ganache and Oracle to be running, and `xfund-vor` contracts deployed
 ```bash
 npx truffle deploy --network=develop
 npx truffle exec dev_scripts/ganache_nft_request.js --network=develop
+npx truffle exec dev_scripts/ganache_dnd_requests.js --network=develop
 ```
