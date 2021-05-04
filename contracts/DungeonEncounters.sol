@@ -270,6 +270,7 @@ contract DungeonEncounters is Ownable, VORConsumerBase {
     * to a maximum of 25
     */
     function increaseArmourClass() external {
+        require(!players[msg.sender].inEncounter, "cannot increase encounter!");
         require(players[msg.sender].ac < maxPlayerAc, "max AC reached");
         _payStatFees();
         players[msg.sender].ac = players[msg.sender].ac.add(1);
@@ -282,6 +283,7 @@ contract DungeonEncounters is Ownable, VORConsumerBase {
     * to a maximum of 100
     */
     function increaseHitPoints() external {
+        require(!players[msg.sender].inEncounter, "cannot increase encounter!");
         require(players[msg.sender].hp < maxPlayerHp, "max HP reached");
         _payStatFees();
         players[msg.sender].hp = players[msg.sender].hp.add(5);
@@ -294,6 +296,7 @@ contract DungeonEncounters is Ownable, VORConsumerBase {
     * to a maximum of 10. If d20 + STR >= Monster's AC, they hit.
     */
     function increaseStrengthModifier() external {
+        require(!players[msg.sender].inEncounter, "cannot increase encounter!");
         require(players[msg.sender].str < maxPlayerStr, "max STR reached");
         _payStatFees();
         players[msg.sender].str = players[msg.sender].str.add(1);
@@ -310,6 +313,7 @@ contract DungeonEncounters is Ownable, VORConsumerBase {
     * 12 = d12
     */
     function increaseAttackDice() external {
+        require(!players[msg.sender].inEncounter, "cannot increase encounter!");
         require(players[msg.sender].atk < maxPlayerAtk, "max ATK reached");
         _payStatFees();
         players[msg.sender].atk = players[msg.sender].atk.add(2);
@@ -322,6 +326,7 @@ contract DungeonEncounters is Ownable, VORConsumerBase {
     * to a maximum of 10.
     */
     function increaseDamageModifier() external {
+        require(!players[msg.sender].inEncounter, "cannot increase encounter!");
         require(players[msg.sender].dmg < maxPlayerDmg, "max DMG reached");
         _payStatFees();
         players[msg.sender].dmg = players[msg.sender].dmg.add(1);
