@@ -48,31 +48,40 @@ module.exports = async function(callback) {
 
   const competitionId = newComp.logs[2].args.Id
 
-  let c = await nft.getCompetition(competitionId)
-
-  console.log(c)
-
   for(let i = 1; i < maxEntries; i += 1) {
     const acc = i + 1
     console.log("acc", acc, "enter competition", competitionId.toString() )
     await nft.enterCompetition( competitionId, { from: accounts[acc] } )
   }
 
-  c = await nft.getCompetition(competitionId)
-  console.log(c)
+  const comp = await nft.getCompetition(competitionId)
+  console.log("competition info", comp)
+
+  const entries = await nft.getCompetitionEntries(competitionId)
+  console.log("competition entries", entries)
 
   console.log("run competition", competitionId.toString())
-  const receipt = await nft.runCompetition(12345, competitionId, {from: consumerOwner})
+  const runReceipt = await nft.runCompetition(12345, competitionId, {from: consumerOwner})
 
-  console.log(receipt)
+  console.log(runReceipt)
 
   console.log("wait....")
 
   await sleep(15000)
 
-  const nftb1 = await nft.ownerOf(1)
+  const compResults = await nft.getCompetition(competitionId)
+  console.log("competition results", compResults)
 
-  console.log("winner comp id", competitionId.toString(), "=", nftb1)
+  console.log("winner comp id", competitionId.toString(), "=", compResults.winner)
+  const nftOwnerBefore = await nft.ownerOf(competitionId)
+  console.log("nft owner", nftOwnerBefore)
+
+  console.log("claim prize")
+
+  await nft.claimPrize(competitionId, {from: compResults.winner})
+
+  const nftOwnerAfter = await nft.ownerOf(competitionId)
+  console.log("new nft owner", nftOwnerAfter)
 
   callback()
 }
