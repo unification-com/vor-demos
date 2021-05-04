@@ -216,6 +216,18 @@ contract DungeonEncounters is Ownable, VORConsumerBase {
     }
 
     /**
+     * @notice setHealingPotionHp allows contract owner to change amount
+     * of HP a healing potion provides
+     *
+     * @param _newHealingPotionHp uint256 new value
+     */
+    function setHealingPotionHp(uint256 _newHealingPotionHp) external onlyOwner {
+        require(_newHealingPotionHp > 0, "must be > zero");
+        healingPotionHp = _newHealingPotionHp;
+        emit MaxStatIncreased("HealingPotionHP", _newHealingPotionHp);
+    }
+
+    /**
     * @notice createPlayer can be called by any wallet to create a new basic player
     * PLAYER_START_* consts are used for initial player stats
     *
