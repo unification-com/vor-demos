@@ -34,19 +34,20 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
     struct Competition {
         uint256 maxEntries; // max number of entries allowed
         uint256 competitionFee; // xFUND cost to enter competition
-        uint256 tokenId; //will be the same as the competitionId
-        bool open;
+        uint256 tokenId; // will be the same as the competitionId
+        address winner;
         bool running;
-        address[] entrants;
     }
 
     mapping(uint256 => Competition) public competitions;
+    mapping(uint256 => address[]) public competitionEntries;
     mapping(bytes32 => uint256) public requestIdToCompetitionId;
 
-    event NewCompetition(uint256 Id, address indexed creator);
-    event CompetitionEntry(uint256 competitionId, address indexed entrant);
+    event NewCompetition(uint256 Id, address creator);
+    event CompetitionEntry(uint256 competitionId, address entrant);
     event CompetitionRunning(uint256 competitionId, bytes32 requestId);
-    event CompetitionWinner(uint256 competitionId, address indexed winner, bytes32 requestId);
+    event CompetitionWinner(uint256 competitionId, address winner, bytes32 requestId);
+    event PrizeClaimed(uint256 competitionId, uint256 tokenId, address winner);
     event ERC721Received(address operator, address from, uint256 tokenId);
 
     /**
@@ -93,8 +94,6 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
         competitions[currentCompetitionId].maxEntries = _maxEntries;
         competitions[currentCompetitionId].tokenId = currentCompetitionId;
         competitions[currentCompetitionId].competitionFee = _competitionFee;
-        competitions[currentCompetitionId].open = true;
-        competitions[currentCompetitionId].running = false;
 
         emit NewCompetition(currentCompetitionId, msg.sender);
 
@@ -107,14 +106,15 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
      * @param _competitionId uint256 ID of the competition being run
      */
     function enterCompetition(uint256 _competitionId) external {
-        require(competitions[_competitionId].open, "competition does not exist");
-        require(competitions[_competitionId].entrants.length < competitions[_competitionId].maxEntries, "competition full");
+        require(competitions[_competitionId].tokenId == _competitionId, "competition does not exist");
+        require(!competitions[_competitionId].running, "competition running");
+        require(competitionEntries[_competitionId].length < competitions[_competitionId].maxEntries, "competition full");
 
         uint256 fee = competitions[_competitionId].competitionFee;
 
         xFUND.transferFrom(msg.sender, address(this), fee);
 
-        competitions[_competitionId].entrants.push(msg.sender);
+        competitionEntries[_competitionId].push(msg.sender);
 
         emit CompetitionEntry(_competitionId, msg.sender);
     }
@@ -126,8 +126,8 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
      * @param _competitionId uint256 ID of the competition being run
      */
     function runCompetition(uint256 _userProvidedSeed, uint256 _competitionId) external onlyOwner returns (bytes32 requestId) {
-        require(competitions[_competitionId].open, "competition does not exist");
-        competitions[_competitionId].open = false;
+        require(competitions[_competitionId].tokenId == _competitionId, "competition does not exist");
+        require(competitionEntries[_competitionId].length > 1, "not enough entries to run");
         competitions[_competitionId].running = true;
         xFUND.transferFrom(msg.sender, address(this), randomnessFee);
         requestId = requestRandomness(keyHash, randomnessFee, _userProvidedSeed);
@@ -147,16 +147,29 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
     function fulfillRandomness(bytes32 _requestId, uint256 _randomness) internal override {
         uint256 competitionId = requestIdToCompetitionId[_requestId];
         require(competitions[competitionId].running, "competition not running");
-        competitions[competitionId].running = false;
-        uint256 winnerIdx = _randomness.mod(competitions[competitionId].entrants.length);
-        address winner = competitions[competitionId].entrants[winnerIdx];
-
-        _safeTransfer(address(this), winner, competitions[competitionId].tokenId, "");
+        uint256 winnerIdx = _randomness.mod(competitionEntries[competitionId].length);
+        address winner = competitionEntries[competitionId][winnerIdx];
+        competitions[competitionId].winner = winner;
 
         emit CompetitionWinner(competitionId, winner, _requestId);
 
-        delete competitions[competitionId];
+        delete competitionEntries[competitionId];
         delete requestIdToCompetitionId[_requestId];
+    }
+
+    /**
+     * @notice allows competition winner to claim their prize
+     *
+     * @param _competitionId uint256 ID of the competition being run
+     */
+    function claimPrize(uint256 _competitionId) external {
+        address winner = competitions[_competitionId].winner;
+        require(msg.sender == winner, "you are not the winner");
+
+        emit PrizeClaimed(_competitionId, competitions[_competitionId].tokenId, winner);
+
+        _safeTransfer(address(this), winner, competitions[_competitionId].tokenId, "");
+        delete competitions[_competitionId];
     }
 
     /**
@@ -224,6 +237,15 @@ contract NFTCompetition is Ownable, ERC721, VORConsumerBase, IERC721Receiver {
      */
     function getCompetition(uint256 _competitionId) public view returns(Competition memory) {
         return competitions[_competitionId];
+    }
+
+    /**
+     * @notice Get a competition's entries
+     *
+     * @param _competitionId uint256 ID of the competition
+     */
+    function getCompetitionEntries(uint256 _competitionId) public view returns(address[] memory) {
+        return competitionEntries[_competitionId];
     }
 
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external override returns (bytes4) {
